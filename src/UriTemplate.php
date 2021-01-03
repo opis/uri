@@ -438,7 +438,7 @@ REGEX;
         for ($i = 0, $len = strlen($data); $i < $len; $i++) {
             if (strpos($skip, $data[$i]) !== false) {
                 if ($temp !== '') {
-                    $result .= rawurlencode($temp);
+                    $result .= Uri::encodeComponent($temp);
                     $temp = '';
                 }
                 $result .= $data[$i];
@@ -449,7 +449,7 @@ REGEX;
                     && strpos('ABCDEF0123456789', $data[$i + 1]) !== false
                     && strpos('ABCDEF0123456789', $data[$i + 2]) !== false) {
                     if ($temp !== '') {
-                        $result .= rawurlencode($temp);
+                        $result .= Uri::encodeComponent($temp);
                     }
                     $result .= '%' . $data[$i + 1] . $data[$i + 2];
                     $i += 3;
@@ -460,7 +460,7 @@ REGEX;
         }
 
         if ($temp !== '') {
-            $result .= rawurlencode($temp);
+            $result .= Uri::encodeComponent($temp);
         }
 
         return $result;
@@ -500,112 +500,27 @@ REGEX;
     /**
      * @param string $str
      * @param int $len
-     * @return string|null
+     * @return string
      */
-    protected static function prefix(string $str, int $len): ?string
+    protected static function prefix(string $str, int $len): string
     {
-        // Inspired by opis/string
-
         if ($len === 0) {
             return '';
         }
 
-        $current = 0;
-
-        $i = 0;
         $length = strlen($str);
 
         if ($len >= $length) {
             return $str;
         }
 
-        while ($i < $length) {
+        $current = 0;
+
+        foreach (Helper::getStrBytes($str) as $index => $_) {
             if ($current === $len) {
-                return substr($str, 0, $i);
+                return substr($str, 0, $index);
             }
-
-            $ord0 = ord($str[$i++]);
-
-            if ($ord0 < 0x80) {
-                $current++;
-                continue;
-            }
-
-            if ($i === $length || $ord0 < 0xC2 || $ord0 > 0xF4) {
-                return null;
-            }
-
-            $ord1 = ord($str[$i++]);
-
-            if ($ord0 < 0xE0) {
-                if ($ord1 < 0x80 || $ord1 >= 0xC0) {
-                    return null;
-                }
-
-                $current++;
-                continue;
-            }
-
-            if ($i === $length) {
-                return null;
-            }
-
-            $ord2 = ord($str[$i++]);
-
-            if ($ord0 < 0xF0) {
-                if ($ord0 === 0xE0) {
-                    if ($ord1 < 0xA0 || $ord1 >= 0xC0) {
-                        return null;
-                    }
-                } elseif ($ord0 === 0xED) {
-                    if ($ord1 < 0x80 || $ord1 >= 0xA0) {
-                        return null;
-                    }
-                } elseif ($ord1 < 0x80 || $ord1 >= 0xC0) {
-                    return null;
-                }
-
-                if ($ord2 < 0x80 || $ord2 >= 0xC0) {
-                    return null;
-                }
-
-                $current++;
-                continue;
-            }
-
-            if ($i === $length) {
-                return null;
-            }
-
-            $ord3 = ord($str[$i++]);
-
-            if ($ord0 < 0xF5) {
-                if ($ord0 === 0xF0) {
-                    if ($ord1 < 0x90 || $ord1 >= 0xC0) {
-                        return null;
-                    }
-                } elseif ($ord0 === 0xF4) {
-                    if ($ord1 < 0x80 || $ord1 >= 0x90) {
-                        return null;
-                    }
-                } elseif ($ord1 < 0x80 || $ord1 >= 0xC0) {
-                    return null;
-                }
-
-                if ($ord2 < 0x80 || $ord2 >= 0xC0) {
-                    return null;
-                }
-
-                if ($ord3 < 0x80 || $ord3 >= 0xC0) {
-                    return null;
-                }
-
-                $current++;
-
-                continue;
-            }
-
-            return null;
+            $current++;
         }
 
         return $str;

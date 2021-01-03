@@ -809,10 +809,10 @@ class Uri
         foreach (explode('&', $query) as $name) {
             $value = null;
             if (($pos = strpos($name, '=')) !== false) {
-                $value = rawurldecode(substr($name, $pos + 1));
-                $name = rawurldecode(substr($name, 0, $pos));
+                $value = self::encodeComponent(substr($name, $pos + 1));
+                $name = self::encodeComponent(substr($name, 0, $pos));
             } else {
-                $name = rawurldecode($name);
+                $name = self::encodeComponent($name);
             }
             $list[$name] = $value;
         }
@@ -857,10 +857,10 @@ class Uri
         $data = [];
 
         foreach ($f($qs, $prefix) as $key => $value) {
-            $item = is_string($key) ? rawurlencode($key) : $key;
+            $item = is_string($key) ? self::encodeComponent($key) : $key;
             if ($value !== null) {
                 $item .= '=';
-                $item .= is_string($value) ? rawurlencode($value) : $value;
+                $item .= is_string($value) ? self::encodeComponent($value) : $value;
             }
             if ($item === '' || $item === '=') {
                 continue;
@@ -886,6 +886,31 @@ class Uri
     public static function normalizeQueryString(string $query): string
     {
         return static::buildQueryString(self::parseQueryString($query), null, '&', true);
+    }
+
+    public static function encodeComponent(string $component, ?array $skip = null): string
+    {
+        $str = '';
+
+        foreach (Helper::getStrBytes($component) as $bytes) {
+            if (count($bytes) === 1) {
+                $b = $bytes[0];
+                if ($b === 0x2D || $b === 0x2E ||
+                    $b === 0x5F || $b === 0x7E ||
+                    ($b >= 0x41 && $b <= 0x5A) ||
+                    ($b >= 0x61 && $b <= 0x7A) ||
+                    ($b >= 0x30 && $b <= 0x39) ||
+                    ($skip && in_array($b, $skip, true))
+                ) {
+                    $str .= chr($b);
+                    continue;
+                }
+            }
+
+            $str .= '%' . strtoupper(implode('%', array_map('dechex', $bytes)));
+        }
+
+        return $str;
     }
 
     public static function setSchemePort(string $scheme, ?int $port): void
