@@ -1,0 +1,9 @@
+.idea/
+vendor/
+_site/
+shared/
+Gemfile.lock
+composer.lock
+.DS_Store
+.phpunit.result.cache
+test.php
