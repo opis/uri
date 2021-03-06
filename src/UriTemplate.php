@@ -17,6 +17,8 @@
 
 namespace Opis\Uri;
 
+use Opis\String\UnicodeString;
+
 class UriTemplate
 {
     /** @var string */
@@ -268,7 +270,7 @@ REGEX;
             $len = count($value);
             for ($i = 0; $i < $len; $i++) {
                 if (!array_key_exists($i, $value)) {
-                    $value = (object) $value;
+                    $value = (object)$value;
                     break;
                 }
             }
@@ -508,21 +510,11 @@ REGEX;
             return '';
         }
 
-        $length = strlen($str);
-
-        if ($len >= $length) {
+        if ($len >= strlen($str)) {
+            // Prefix is longer than string length
             return $str;
         }
 
-        $current = 0;
-
-        foreach (Helper::getStrBytes($str) as $index => $_) {
-            if ($current === $len) {
-                return substr($str, 0, $index);
-            }
-            $current++;
-        }
-
-        return $str;
+        return (string)UnicodeString::from($str)->substring(0, $len);
     }
 }

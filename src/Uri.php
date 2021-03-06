@@ -17,6 +17,8 @@
 
 namespace Opis\Uri;
 
+use Opis\String\UnicodeString;
+
 class Uri
 {
     protected const URI_REGEX = '`^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$`';
@@ -892,22 +894,25 @@ class Uri
     {
         $str = '';
 
-        foreach (Helper::getStrBytes($component) as $bytes) {
-            if (count($bytes) === 1) {
-                $b = $bytes[0];
-                if ($b === 0x2D || $b === 0x2E ||
-                    $b === 0x5F || $b === 0x7E ||
-                    ($b >= 0x41 && $b <= 0x5A) ||
-                    ($b >= 0x61 && $b <= 0x7A) ||
-                    ($b >= 0x30 && $b <= 0x39) ||
-                    ($skip && in_array($b, $skip, true))
+        foreach (UnicodeString::walkString($component) as [$cp, $chars]) {
+            if ($cp < 0x80) {
+                if ($cp === 0x2D || $cp === 0x2E ||
+                    $cp === 0x5F || $cp === 0x7E ||
+                    ($cp >= 0x41 && $cp <= 0x5A) ||
+                    ($cp >= 0x61 && $cp <= 0x7A) ||
+                    ($cp >= 0x30 && $cp <= 0x39) ||
+                    ($skip && in_array($cp, $skip, true))
                 ) {
-                    $str .= chr($b);
-                    continue;
+                    $str .= chr($cp);
+                } else {
+                    $str .= '%' . strtoupper(dechex($cp));
+                }
+            } else {
+                $i = 0;
+                while (isset($chars[$i])) {
+                    $str .= '%' . strtoupper(dechex(ord($chars[$i++])));
                 }
             }
-
-            $str .= '%' . strtoupper(implode('%', array_map('dechex', $bytes)));
         }
 
         return $str;
