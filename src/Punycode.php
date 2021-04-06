@@ -32,6 +32,7 @@ final class Punycode
     private const PREFIX_LEN = 4;
     private const DELIMITER = 0x2D;
     private const MAX_INT = 0x7FFFFFFF;
+    private const NON_ASCII = '#[^\0-\x7E]#';
 
     public static function encode(string $input): string
     {
@@ -43,9 +44,14 @@ final class Punycode
         return implode('.', array_map([self::class, 'decodePart'], explode('.', $input)));
     }
 
+    public static function normalize(string $input): string
+    {
+        return implode('.', array_map([self::class, 'normalizePart'], explode('.', $input)));
+    }
+
     public static function encodePart(string $input): string
     {
-        if (!preg_match('#[^\0-\x7E]#', $input)) {
+        if (!preg_match(self::NON_ASCII, $input)) {
             return $input;
         }
 
@@ -125,7 +131,7 @@ final class Punycode
 
     public static function decodePart(string $input): string
     {
-        if (strpos($input, self::PREFIX) !== 0) {
+        if (stripos($input, self::PREFIX) !== 0) {
             return $input;
         }
 
@@ -206,6 +212,18 @@ final class Punycode
         }
 
         return UnicodeString::getStringFromCodePoints($output);
+    }
+
+    public static function normalizePart(string $input): string
+    {
+        $input = strtolower($input);
+
+        if (strpos($input, self::DELIMITER) === 0) {
+            self::decodePart($input); // just validate
+            return $input;
+        }
+
+        return self::encodePart($input);
     }
 
     private static function encodeDigit(int $digit): int
