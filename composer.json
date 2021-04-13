@@ -1,7 +1,7 @@
 {
     "name": "opis/uri",
     "description": "Build, parse and validate URIs and URI-templates",
-    "keywords": ["uri", "uri template", "url", "parse url", "uri components", "validate uri"],
+    "keywords": ["uri", "uri template", "url", "parse url", "uri components", "validate uri", "punycode"],
     "homepage": "https://opis.io",
     "license": "Apache-2.0",
     "authors": [
@@ -16,7 +16,7 @@
     ],
     "require": {
         "php": "^7.4 || ^8.0",
-        "opis/string": "2020.x-dev"
+        "opis/string": "^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9"
@@ -38,7 +38,7 @@
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2021.x-dev"
+            "dev-master": "1.x-dev"
         }
     }
 }
