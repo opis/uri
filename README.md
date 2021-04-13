@@ -14,7 +14,7 @@ Opis URI
 
 ## Requirements
 
-* PHP ^7.4 | ^8.0
+* PHP ^7.4 || ^8.0
 
 ## Installation
 
@@ -30,7 +30,7 @@ Or you could directly reference it into your `composer.json` file as a dependenc
 ```json
 {
     "require": {
-        "opis/uri": "^2021"
+        "opis/uri": "^1.0"
     }
 }
 ```
