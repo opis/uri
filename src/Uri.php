@@ -811,10 +811,10 @@ class Uri
         foreach (explode('&', $query) as $name) {
             $value = null;
             if (($pos = strpos($name, '=')) !== false) {
-                $value = self::encodeComponent(substr($name, $pos + 1));
-                $name = self::encodeComponent(substr($name, 0, $pos));
+                $value = self::decodeComponent(substr($name, $pos + 1));
+                $name = self::decodeComponent(substr($name, 0, $pos));
             } else {
-                $name = self::encodeComponent($name);
+                $name = self::decodeComponent($name);
             }
             $list[$name] = $value;
         }
@@ -890,8 +890,17 @@ class Uri
         return static::buildQueryString(self::parseQueryString($query), null, '&', true);
     }
 
+    public static function decodeComponent(string $component): string
+    {
+        return rawurldecode($component);
+    }
+
     public static function encodeComponent(string $component, ?array $skip = null): string
     {
+        if (!$skip) {
+            return rawurlencode($component);
+        }
+
         $str = '';
 
         foreach (UnicodeString::walkString($component) as [$cp, $chars]) {
@@ -901,7 +910,7 @@ class Uri
                     ($cp >= 0x41 && $cp <= 0x5A) ||
                     ($cp >= 0x61 && $cp <= 0x7A) ||
                     ($cp >= 0x30 && $cp <= 0x39) ||
-                    ($skip && in_array($cp, $skip, true))
+                    in_array($cp, $skip, true)
                 ) {
                     $str .= chr($cp);
                 } else {
@@ -910,7 +919,7 @@ class Uri
             } else {
                 $i = 0;
                 while (isset($chars[$i])) {
-                    $str .= '%' . strtoupper(dechex(ord($chars[$i++])));
+                    $str .= '%' . strtoupper(dechex($chars[$i++]));
                 }
             }
         }
