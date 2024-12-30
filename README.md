@@ -30,7 +30,7 @@ Or you could directly reference it into your `composer.json` file as a dependenc
 ```json
 {
     "require": {
-        "opis/uri": "^1.0"
+        "opis/uri": "^1.1"
     }
 }
 ```
