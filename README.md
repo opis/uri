@@ -1,9 +1,9 @@
 Opis URI
 ==========
 [![Tests](https://github.com/opis/uri/workflows/Tests/badge.svg)](https://github.com/opis/uri/actions)
-[![Latest Stable Version](https://poser.pugx.org/opis/uri/version.png)](https://packagist.org/packages/opis/uri)
-[![Latest Unstable Version](https://poser.pugx.org/opis/uri/v/unstable.png)](//packagist.org/packages/opis/uri)
-[![License](https://poser.pugx.org/opis/uri/license.png)](https://packagist.org/packages/opis/uri)
+[![Packagist Version](https://img.shields.io/packagist/v/opis/uri?label=Version)](https://packagist.org/packages/opis/uri)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/opis/uri?label=Downloads)](https://packagist.org/packages/opis/uri)
+[![Packagist License](https://img.shields.io/packagist/l/opis/uri?color=teal&label=License)](https://packagist.org/packages/opis/uri)
 
 
 **Opis URI** library allows you to build, parse and validate URIs and URI-templates.
