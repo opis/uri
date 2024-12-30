@@ -34,8 +34,9 @@
     "config": {
         "preferred-install": "dist"
     },
-    "prefer-stable": true,
-    "minimum-stability": "dev",
+    "scripts": {
+        "tests": "./vendor/bin/phpunit --verbose --color"
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "1.x-dev"
