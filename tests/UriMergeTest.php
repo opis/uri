@@ -45,6 +45,7 @@ class UriMergeTest extends TestCase
             ["//g", "http://g"],
             ["?y", "http://a/b/c/d;p?y"],
             ["g?y", "http://a/b/c/g?y"],
+            ["g?y={y}", "http://a/b/c/g?y={y}"],
             ["#s", "http://a/b/c/d;p?q#s"],
             ["g#s", "http://a/b/c/g#s"],
             ["g?y#s", "http://a/b/c/g?y#s"],
