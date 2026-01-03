@@ -35,7 +35,7 @@ class Uri
 
     protected const PATH_REGEX = '`^(?:(?:%[a-f0-9]{2})+|[a-z0-9-._~!$&\'()*+,;=:@/]+)*$`i';
 
-    protected const QUERY_OR_FRAGMENT_REGEX = '`^(?:(?:%[a-f0-9]{2})+|[a-z0-9-._~!$&\'"()\[\]*+,;=:@?/%]+)*$`i';
+    protected const QUERY_OR_FRAGMENT_REGEX = '`^(?:(?:%[a-f0-9]{2})+|[a-z0-9-._~!$&\'"()\[\]*+,;=:@?/%{}]+)*$`i';
 
     protected array $components;
 
