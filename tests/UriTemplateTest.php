@@ -179,4 +179,51 @@ class UriTemplateTest extends TestCase
             ],
         ];
     }
+
+    /**
+     * @dataProvider jsonDataProvider
+     */
+    public function testJSON(
+        string $title,
+        array  $vars,
+        string $template,
+        mixed  $expected
+    ) {
+        if ($expected === false) {
+            if (!UriTemplate::isTemplate($template)) {
+                $this->assertTrue(true);
+            } else {
+                $this->assertEquals("", (new UriTemplate($template))->resolve($vars));
+            }
+        } else {
+            $result = (new UriTemplate($template))->resolve($vars);
+            if (is_array($expected)) {
+                $this->assertTrue(in_array($result, $expected, true));
+            } else {
+                $this->assertEquals($expected, $result);
+            }
+        }
+    }
+
+    public function jsonDataProvider()
+    {
+        // https://github.com/uri-templates/uritemplate-test
+
+        $files = [
+            "spec-examples",
+            "spec-examples-by-section",
+            "extended-tests",
+            "negative-tests",
+        ];
+
+        foreach ($files as $file) {
+            $json = json_decode(file_get_contents(__DIR__ . "/uri-template/{$file}.json"), true);
+            foreach ($json as $category => $data) {
+                $variables = $data["variables"];
+                foreach ($data["testcases"] as $test) {
+                    yield [$category, $variables, $test[0], $test[1]];
+                }
+            }
+        }
+    }
 }
