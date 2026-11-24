@@ -26,16 +26,27 @@ class UriTemplate
 
     /** @var string */
     protected const TEMPLATE_REGEX = <<<'REGEX'
-~\{
-(?<operator>[+#./;&=,!@|\?])?
+~{
+(?<operator>[+#.\/;\?&])?
 (?<varlist>
   (?:(?P>varspec),)*
   (?<varspec>(?:
-    [a-zA-Z0-9\_\%\.]+
-    (?:\*|\:\d+)?
+    (?:(?P>varchar)\.)*
+    (?<varchar>(?:
+      [a-zA-Z0-9_]|%[a-fA-F0-9]{2}
+    )+)
+    (?:\*|\:[1-9]\d{0,3})?
   ))
 )
-\}~x
+}~x
+REGEX;
+
+    protected const LITERAL_REGEX = <<<'REGEX'
+~
+%[0-9a-fA-F]{2} (*SKIP)(*FAIL) 
+| [\x21\x23\x24\x26-\x3B\x3D\x3F-\x5B\x5D\x5F\x61-\x7A\x7E] (*SKIP)(*FAIL)
+| [\s\S]
+~ux
 REGEX;
 
     /** @var array */
@@ -168,6 +179,7 @@ REGEX;
             return null;
         }
 
+        $hasLiterals = false;
         $dataIndex = -1;
         $data = [];
 
@@ -178,6 +190,7 @@ REGEX;
             if ($nextOffset < $offset) {
                 $data[] = substr($uri, $nextOffset, $offset - $nextOffset);
                 $dataIndex++;
+                $hasLiterals = true;
             }
             $matched = $p[0][0];
             $nextOffset = $offset + strlen($matched);
@@ -190,6 +203,7 @@ REGEX;
                     $data[] = $matched;
                     $dataIndex++;
                 }
+                $hasLiterals = true;
                 continue;
             }
 
@@ -227,6 +241,7 @@ REGEX;
                     $data[] = $matched;
                     $dataIndex++;
                 }
+                $hasLiterals = true;
             }
 
             unset($varData, $varList, $operator);
@@ -242,6 +257,21 @@ REGEX;
                 $data[$dataIndex] .= $matched;
             } else {
                 $data[] = $matched;
+            }
+            $hasLiterals = true;
+        }
+
+        if (!$hasLiterals) {
+            return $data;
+        }
+
+        $callback = function (array $matches): string {
+            return rawurlencode($matches[0]);
+        };
+
+        foreach ($data as $key => $item) {
+            if (is_string($item)) {
+                $data[$key] = preg_replace_callback(self::LITERAL_REGEX, $callback, $item);
             }
         }
 
@@ -310,21 +340,26 @@ REGEX;
     {
         $result = [];
         foreach ($data as $var) {
-            $str = "";
+            $str = null;
             if (is_string($var['value'])) {
                 if ($table['named']) {
-                    $str .= $var['name'];
+                    $str = $var['name'];
                     if ($var['value'] === '') {
                         $str .= $table['ifemp'];
                     } else {
                         $str .= '=';
                     }
+                } else {
+                    $str = "";
                 }
                 if ($var['prefix']) {
                     $str .= $this->encodeTemplateString(self::prefix($var['value'], $var['prefix']), $table['allow']);
                 } else {
                     $str .= $this->encodeTemplateString($var['value'], $table['allow']);
                 }
+            } elseif ($var['prefix']) {
+                // max-length is only for strings
+                continue;
             } elseif ($var['explode']) {
                 $list = [];
                 if ($table['named']) {
@@ -375,18 +410,10 @@ REGEX;
                 }
 
                 if ($list) {
-                    $str .= implode($table['sep'], $list);
+                    $str = implode($table['sep'], $list);
                 }
                 unset($list);
             } else {
-                if ($table['named']) {
-                    $str .= $var['name'];
-                    if ($var['value'] === '') {
-                        $str .= $table['ifemp'];
-                    } else {
-                        $str .= '=';
-                    }
-                }
                 $list = [];
                 if (is_array($var['value'])) {
                     foreach ($var['value'] as $v) {
@@ -399,12 +426,15 @@ REGEX;
                     }
                 }
                 if ($list) {
-                    $str .= implode(',', $list);
+                    $str = implode(',', $list);
+                    if ($table['named']) {
+                        $str = $var['name'] . '=' . $str;
+                    }
                 }
                 unset($list);
             }
 
-            if ($str !== '') {
+            if ($str !== null) {
                 $result[] = $str;
             }
         }
@@ -413,13 +443,7 @@ REGEX;
             return '';
         }
 
-        $result = implode($table['sep'], $result);
-
-        if ($result !== '') {
-            $result = $table['first'] . $result;
-        }
-
-        return $result;
+        return $table['first'] . implode($table['sep'], $result);
     }
 
     /**
@@ -454,7 +478,7 @@ REGEX;
                         $result .= Uri::encodeComponent($temp);
                     }
                     $result .= '%' . $data[$i + 1] . $data[$i + 2];
-                    $i += 3;
+                    $i += 2; // just 2, will be 3 with $i++ from loop
                     continue;
                 }
             }
@@ -496,7 +520,7 @@ REGEX;
             return false;
         }
 
-        return (bool)preg_match(self::TEMPLATE_REGEX, $uri);
+        return preg_match_all(self::TEMPLATE_REGEX, $uri) === $open;
     }
 
     /**
