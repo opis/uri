@@ -187,7 +187,7 @@ class UriTemplateTest extends TestCase
         string $title,
         array  $vars,
         string $template,
-        mixed  $expected
+        $expected
     ) {
         if ($expected === false) {
             if (!UriTemplate::isTemplate($template)) {
