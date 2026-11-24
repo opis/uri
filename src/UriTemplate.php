@@ -22,7 +22,7 @@ use Opis\String\UnicodeString;
 class UriTemplate
 {
     /** @var string */
-    protected const TEMPLATE_VARSPEC_REGEX = '~^(?<varname>[a-zA-Z0-9\_\%\.]+)(?:(?<explode>\*)?|\:(?<prefix>\d+))?$~';
+    protected const TEMPLATE_VARSPEC_REGEX = '~^(?<varname>[a-zA-Z0-9\_\%\.]+)(?:(?<explode>\*)?|\:(?<prefix>\d+))?\z~';
 
     /** @var string */
     protected const TEMPLATE_REGEX = <<<'REGEX'
